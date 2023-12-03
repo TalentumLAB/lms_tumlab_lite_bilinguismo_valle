@@ -1,30 +1,6 @@
 version: "3.8"
 
 services:
-  downloader:
-    image: busybox
-    command: wget -O /downloads/init.sql https://storage.googleapis.com/sst-seguridad-trabajo-fabian/error_bilinguismo/no-borrar/init.sql
-    volumes:
-      - ./postgres:/downloads
-  keycloak_db:
-    image: postgres:13
-    container_name: keycloak_db
-    restart: always
-    environment:
-      POSTGRES_DB: keycloak
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: Tumlab2022*
-    # command: sh -c "while [ ! -f /downloads/download_complete ]; do sleep 1; done;"     
-    ports:
-      - 5433:5432
-    volumes:
-      # - ./postgres:/downloads
-      - pgdata:/var/lib/postgresql/data
-      - ./postgres/:/docker-entrypoint-initdb.d/
-    depends_on:
-      - downloader
-    networks:
-      - aulas-steam-net
   mailhog:
     image: mailhog/mailhog:latest
     container_name: aulas_valle_mailhog
@@ -51,7 +27,7 @@ services:
       KEYCLOAK_MANAGEMENT_PASSWORD: password
 
       KEYCLOAK_DATABASE_VENDOR: POSTGRES
-      KEYCLOAK_DATABASE_HOST: keycloak_db
+      KEYCLOAK_DATABASE_HOST: tumlab.local
       KEYCLOAK_DATABASE_PORT: 5432
       KEYCLOAK_DATABASE_NAME: keycloak
       KEYCLOAK_DATABASE_USER: postgres
@@ -71,15 +47,12 @@ services:
       THEME_NAME: bilinguismovalle
     ports:
       - 8080:8080
-      - 8443:8443
-    # command: sh -c "while [ ! -f /downloads/download_complete ]; do sleep 1; done;"     
+      - 8443:8443   
     volumes:
       - ./keycloak/config:/opt/bitnami/keycloak/data/import
       - ./keycloak/theme:/opt/bitnami/keycloak/providers
-      # - ./postgres:/downloads
     depends_on:
       - mailhog
-      - keycloak_db
     networks:
       - aulas-steam-net
 
@@ -97,15 +70,16 @@ services:
       DB_USER: bilinguismo-db-user
       DB_PASSWORD: Bilinguismo2022*
       DB_DATABASE: simat_db
-      KEYCLOAK_DB_HOST: keycloak_db
+      KEYCLOAK_DB_HOST: tumlab.local
       KEYCLOAK_DB_PORT: 5432
       KEYCLOAK_DB_USER: postgres
       KEYCLOAK_DB_NAME: keycloak
       KEYCLOAK_DB_PASSWORD: Tumlab2022*
       KEYCLOAK_API_URL: /admin/realms/bilinguismovalle
       KEYCLOAK_BASE_URL: http://tumlab.local:8080/auth
-      KEYCLOAK_CLIENT_ID: client-api
-      KEYCLOAK_CLIENT_SECRET: JNbF4R1FXMJhYVUuZHDNRYUfatfuBH8D
+      KEYCLOAK_CLIENT_ID: client-api2
+      #KEYCLOAK_CLIENT_SECRET: JNbF4R1FXMJhYVUuZHDNRYUfatfuBH8D
+      KEYCLOAK_CLIENT_SECRET: 7dsJ9v9VN1GcpQtGODjFprgCchpvlCUO
       KEYCLOAK_GET_TOKEN_URL: /realms/bilinguismovalle/protocol/openid-connect/token
       OVERRIDE_DB_HOST: host.docker.internal
       OVERRIDE_DB_PASSWORD: Bilinguismo2022*
@@ -145,7 +119,7 @@ services:
       - aulas-steam-net
 
   moodle:
-    image: bilinguismotalentum/php74-apache2:1.0.0
+    image: bilinguismotalentum/php74-apache2:1.0.1
     container_name: aulas_valle_moodle
     restart: always
     extra_hosts:
@@ -161,18 +135,11 @@ services:
       MOODLE_SKIP_BOOTSTRAP: true
     ports:
       - '5000:80'
-      # - '443:8443'
     networks:
       - aulas-steam-net
     volumes:
       - '/tumlab/apps/moodle/moodledata:/var/www/moodledata'
       - '/tumlab/apps/moodle/moodle:/var/www/html'
-    
-# volumes:
-#   moodledata_data:
-#     driver: local
-volumes:
-  pgdata:
 
 networks:
   aulas-steam-net:
